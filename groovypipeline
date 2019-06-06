@@ -1,0 +1,30 @@
+import groovy.json.*
+import groovy.json.JsonSlurperClassic
+node {
+   stage ('check out') {
+            steps{
+        git 'xxxxxxxsample-springboot.git'
+        }
+    }
+   stage ('build') {
+            steps{
+        sh 'mvn clean package'
+        }
+    }
+   stage 'DockerLogin'
+   sh '''
+   $( aws ecr get-login --no-include-email --region us-east-1)
+   ''' 
+    stage("DockerImageBuild") {
+    sh 'docker image build -t 552182293274.dkr.ecr.us-east-1.amazonaws.com/sample-springboot.git:${BUILD_ID} . '
+}
+
+stage ("DockerPushECR"){
+sh '''
+
+docker push 552182293274.dkr.ecr.us-east-1.amazonaws.com/sample-springboor.git:${BUILD_ID}
+'''
+}
+stage "Removeworkspace"
+  deleteDir()
+}
